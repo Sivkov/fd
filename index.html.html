@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <script src='./js/jquery.min.js'></script>
+    <script src="./js/jquery.facedetection.min.js"></script>
+
+    <style>
+        body {
+            background: url(./img/background.jpg);
+        }
+        
+        .container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            width: 100%;
+            align-content: center;
+            align-items: center;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .picture-container {
+            position: relative;
+            width: 600px;
+            height: auto;
+            margin: 20px auto;
+            border: 10px solid #fff;
+            background: #000;
+            box-shadow: 0 5px 5px #000;
+        }
+
+        .picture {
+            display: block;
+            object-fit: cover;
+            width: inherit;
+
+        }
+
+        .face {
+            position: absolute;
+         }
+
+
+        .try-it {
+            text-align: center;
+        }
+
+
+        .booth {
+            width: 400px;
+            background: #ccc;
+            border: 10px solid #ddd;
+            margin: 0 auto;
+        }
+
+        .booth-capture-button {
+            display: block;
+            margin: 10px 0;
+            padding: 10px 20px;
+            background: cornflowerblue;
+            color: #fff;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        #canvas{
+            display: none;
+        }
+
+        #video {
+            position: absolute;
+            top:1rem;
+            right: 1rem;
+            border: solid 1px white;
+        }
+
+        #snap {
+            width: 10rem;
+            height: 5rem;
+        }
+
+
+
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <a href="#" target="" class="try-it">
+            <img class="logo" src="./img/mando_1.png">
+        </a>
+        <div id="imgTest" class="picture-container">
+        </div>
+     <!--   <input id="inputFileToLoad" type="file" onchange="encodeImageFileAsURL();" /> -->
+        
+        <video id="video" width="320" height="240" autoplay></video>
+        <button id="snap">Make Photo</button>
+        <canvas id="canvas" width="640" height="480"></canvas>
+
+    </div>
+</body>
+<script>
+    /*
+    function encodeImageFileAsURL() {
+
+        var filesSelected = document.getElementById("inputFileToLoad").files;
+        if (filesSelected.length > 0) {
+            var fileToLoad = filesSelected[0];
+
+            var fileReader = new FileReader();
+
+            fileReader.onload = function (fileLoadedEvent) {
+                var srcData = fileLoadedEvent.target.result;
+
+                var newImage = document.createElement('img');
+                newImage.src = srcData;
+                newImage.classList.add("picture")
+
+                document.getElementById("imgTest").innerHTML = newImage.outerHTML;
+            }
+            fileReader.readAsDataURL(fileToLoad);
+        }
+    }
+    */
+
+    $('body').on('click', '.try-it', function (e) {
+        e.preventDefault();
+
+        console.log('time to search')
+
+        $('.face').remove();
+
+        $('.picture').faceDetection({
+            complete: function (faces) {
+                for (var i = 0; i < faces.length; i++) {
+                    console.log('still in  to search')
+
+                    $('<img>', {
+                        'class': 'face',
+                        'src': './img/mando.png',
+
+                        'css': {
+                            'position': 'absolute',
+                            'left': 0.8*faces[i].x * faces[i].scaleX + 'px',
+                            'top': 0.6*faces[i].y * faces[i].scaleY + 'px',
+                            'width': faces[i].width*1.5*faces[i].scaleX + 'px',
+                            'height': faces[i].height*1.7*faces[i].scaleY + 'px',
+ 
+
+
+                        }
+                    })
+                        .insertAfter(this);
+                }
+
+                $('<img>', {
+                         'src': './img/mando_1.png',
+                         'css': {
+                            'position': 'absolute',
+                            'right': '1rem',
+                            'top': '1rem',
+                            'width': '9rem',
+                            'height':'5rem',
+                            'object-fit':'cover',
+                         }
+                    })
+                        .insertAfter(this);
+            },
+            error: function (code, message) {
+                alert('Error: ' + message);
+            }
+        });
+    });
+
+
+    var video = document.getElementById('video');
+    // Get access to the camera!
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        // Not adding `{ audio: true }` since we only want video now
+        navigator.mediaDevices.getUserMedia({ video: true }).then(function (stream) {
+            video.src = window.URL.createObjectURL(stream);
+            video.play();
+        });
+    }
+
+    // Put event listeners into place
+    window.addEventListener("DOMContentLoaded", function () {
+        // Grab elements, create settings, etc.
+        var canvas = document.getElementById('canvas');
+        var context = canvas.getContext('2d');
+        var video = document.getElementById('video');
+        var mediaConfig = { video: true };
+        var errBack = function (e) {
+            console.log('An error has occurred!', e)
+        };
+
+        // Put video listeners into place
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia(mediaConfig).then(function (stream) {
+                //video.src = window.URL.createObjectURL(stream);
+                video.srcObject = stream;
+                video.play();
+            });
+        }
+
+        /* Legacy code below! */
+       /* else if (navigator.getUserMedia) { // Standard
+            navigator.getUserMedia(mediaConfig, function (stream) {
+                video.src = stream;
+                video.play();
+            }, errBack);
+        } else if (navigator.webkitGetUserMedia) { // WebKit-prefixed
+            navigator.webkitGetUserMedia(mediaConfig, function (stream) {
+                video.src = window.webkitURL.createObjectURL(stream);
+                video.play();
+            }, errBack);
+        } else if (navigator.mozGetUserMedia) { // Mozilla-prefixed
+            navigator.mozGetUserMedia(mediaConfig, function (stream) {
+                video.src = window.URL.createObjectURL(stream);
+                video.play();
+            }, errBack);
+        }*/
+
+        // Trigger photo take
+        document.getElementById('snap').addEventListener('click', function () {
+            context.drawImage(video, 0, 0, 640, 480);
+            var canvas = document.getElementById('canvas');
+            var dataURL = canvas.toDataURL();
+            var newImage = document.createElement('img');
+            newImage.src = dataURL;
+            newImage.classList.add("picture")
+            document.getElementById("imgTest").innerHTML = newImage.outerHTML;   
+            setTimeout(()=>{
+                $('.try-it').trigger('click')
+            }, 2000)
+            
+            });
+    }, false);
+
+
+
+
+
+</script>
+
+</html>
