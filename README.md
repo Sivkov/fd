@@ -1,0 +1,2 @@
+# fd
+Detect yourself mandolorian.
